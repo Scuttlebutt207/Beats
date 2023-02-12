@@ -10,6 +10,7 @@ pygame.init()
 WIDTH = 1400
 HEIGHT = 800
 
+#colors used in app
 black =(0,0,0)
 white = (255,255,255)
 gray = (128,128,128)
@@ -22,6 +23,7 @@ blue = (0,255,255)
 #Create screen using dimensions used above, name the caption and label
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('Silly Rabbit, Beats are for Kids')
+#Basic fonts on most computers
 label_font = pygame.font.Font('freesansbold.ttf', 32)
 medium_font = pygame.font.Font('freesansbold.ttf', 24)
 
@@ -29,14 +31,19 @@ medium_font = pygame.font.Font('freesansbold.ttf', 24)
 #set fps and timer which is super important for games
 fps = 60
 timer = pygame.time.Clock()
-#square boxes for beats
+
+#8 beats by default
 beats = 8
+
 #basically rows
 instruments = 6
 boxes = []
+
 #-1 is not active, 1 is active
 clicked = [[-1 for _ in range(beats)] for _ in range(instruments)]
+#handles turning off channels
 active_list = [1 for _ in range(instruments)]
+#Default bpm is 240
 bpm = 240
 playing = True
 active_length = 0
@@ -45,6 +52,9 @@ beat_changed = True
 
 def play_notes():
     for i in range(len(clicked)):
+        #Basically, if the instrument square is clicked, it is equal to 1.
+        #And the active list isn't -1 (off), play the sounds on that channel.
+        #clicking the channel turns that instrument off by making it -1.
         if clicked[i][active_beat] == 1 and active_list[i] == 1:
             if i == 0:
                 hi_hat.play()
@@ -70,13 +80,16 @@ floor_tom = mixer.Sound('./sounds/tom.WAV')
 pygame.mixer.set_num_channels(instruments * 3)
 
 #define function for draw grid
-def draw_grid(clicks, beat,actives):
+#passes, clicks, the beat, and which instruments are active.
+def draw_grid(clicks, beat, actives):
     #start by making the left side menu. it is a rectangle so I have to call 4 arguments
     #Fifth one outside of the [], determines the width of the edges and make it a hollow object
     left_box = pygame.draw.rect(screen,gray, [0, 0, 200, HEIGHT - 200], 5)
     bottom_box = pygame.draw.rect(screen, gray, [0, HEIGHT - 200, WIDTH, 200], 5)
     boxes = []
+    #Colors handle identifying if the channel is on or or, or if the beat is 1 or -1.
     colors = [gray, white, gray]
+    #By calling actives, here, I am stating the channel's color below later.
     hi_hat_text = label_font.render('Hi Hat', True, colors[actives[0]])
     screen.blit(hi_hat_text, (30,30))
     snare_text = label_font.render('Snare', True, colors[actives[1]])
@@ -100,13 +113,19 @@ def draw_grid(clicks, beat,actives):
 
     for i in range(beats):
         for j in range(instruments):
+            #if instrument is off for the beat, it is gray.
             if clicks[j][i] == -1:
                 color = gray
             else:
+                #If the instrument is on for the beat, it is green.
                 if actives[j] == 1:
                     color = green
+                #But, if the instrument itself is -1, or off, the whole line of squares on,
+                #are turned off and made dark gray.
                 else:
                     color = dark_gray
+
+
             #use floor division to make sure the width - 200 stays an integer
             #odd math needed to scale this
             #Basically, taking the amount of beats and separating them by width - 200,
@@ -180,7 +199,9 @@ while run:
         rect = pygame.rect.Rect((0, i * 100), (200,100))
         instruments_rect.append(rect)
 
-
+    #Beat changed is set to true at the start, this is so it plays the function play_notes on
+    #startup. Otherwise, it wouldn't. Then it changes that variable to False so it doesn't
+    #shutoff right away.
     if beat_changed:
         play_notes()
         beat_changed = False
@@ -203,10 +224,14 @@ while run:
                 #see it is not playing, and start playing again immediately.
                 elif not playing:
                     playing = True
+            #Handles clicking on bpm to add or subtract bpms
             elif bpm_add_rect.collidepoint(event.pos):
                 bpm += 5
             elif bpm_sub_rect.collidepoint(event.pos):
                 bpm -= 5
+            #Same thing as bpm for how many beats on screen.
+            #Handles adding/subtracking the amount of squares on the screen by popping or
+            #appending to the list clicked.
             elif beats_add_rect.collidepoint(event.pos):
                 beats += 1
                 for i in range(len(clicked)):
@@ -215,6 +240,7 @@ while run:
                 beats -= 1
                 for i in range(len(clicked)):
                     clicked[i].pop(-1)
+            #This part handles the turning off of an entire channel when you click the name.
             for i in range(len(instruments_rect)):
                 if instruments_rect[i].collidepoint(event.pos):
                     active_list[i] *= -1
